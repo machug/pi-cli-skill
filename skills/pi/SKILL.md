@@ -33,7 +33,8 @@ if ! command -v pi >/dev/null 2>&1; then
   exit 1
 fi
 
-PI_VERSION=$(pi --version 2>/dev/null | head -1)
+# Pi writes to stderr, not stdout — keep 2>&1
+PI_VERSION=$(pi --version 2>&1 | head -1)
 echo "PI_VERSION: $PI_VERSION"
 
 # Bun installed (for SDK runner)?
@@ -52,7 +53,7 @@ CACHE_DIR="$HOME/.cache/pi-cli-skill"
 mkdir -p "$CACHE_DIR"
 MODELS_CACHE="$CACHE_DIR/models.txt"
 if [ ! -f "$MODELS_CACHE" ] || [ $(find "$MODELS_CACHE" -mmin +1440 2>/dev/null | wc -l) -gt 0 ]; then
-  pi --list-models 2>/dev/null > "$MODELS_CACHE" || true
+  pi --list-models > "$MODELS_CACHE" 2>&1 || true
 fi
 MODEL_COUNT=$(wc -l < "$MODELS_CACHE" 2>/dev/null | tr -d ' ')
 FOUNDRY_COUNT=$(grep -c '^foundry-' "$MODELS_CACHE" 2>/dev/null || echo 0)
@@ -121,9 +122,11 @@ Print discovery grouped by provider. Highlight foundry-* if present.
 
 ```bash
 CACHE="$HOME/.cache/pi-cli-skill/models.txt"
-[ -f "$CACHE" ] || pi --list-models > "$CACHE"
-awk 'NR==1 {print; next} {print}' "$CACHE" | head -1
+[ -f "$CACHE" ] || pi --list-models > "$CACHE" 2>&1
+# Header row
+head -1 "$CACHE"
 echo "---"
+# Group by provider, count, mark foundry-* with *
 awk 'NR>1 {print $1}' "$CACHE" | sort -u | while read p; do
   count=$(grep -c "^$p " "$CACHE")
   marker=""
