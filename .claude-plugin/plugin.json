@@ -1,6 +1,6 @@
 {
   "name": "pi-cli-skill",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Pi CLI wrapper — code review / adversarial challenge / consult with session continuity. Provider-agnostic second opinion via @mariozechner/pi-coding-agent.",
   "author": {
     "name": "Hugh McIntyre"

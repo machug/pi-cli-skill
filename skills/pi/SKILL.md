@@ -21,10 +21,11 @@ Wraps the [Pi coding agent](https://pi.dev) CLI. Independent voice from the
 session you're in — different provider, different context, fresh eyes.
 
 > **Note for the assistant:** all logic lives in `bin/*.sh`. The skill body is
-> intentionally free of inline `$1`, `$0`, `$@` etc. so the slash-command
-> processor cannot mangle it via positional-arg substitution. The skill shells
-> out to `pi --print --mode json` and parses NDJSON with `jq` — no SDK, no
-> bundled `node_modules`.
+> intentionally free of inline shell positional variables (the dollar-zero
+> through dollar-nine forms, plus dollar-at and dollar-star) so the
+> slash-command processor cannot mangle it via positional-arg substitution.
+> The skill shells out to `pi --print --mode json` and parses NDJSON with
+> `jq` — no SDK, no bundled `node_modules`.
 
 ## How to invoke
 
@@ -120,8 +121,10 @@ to run `pi` once interactively to log in / configure providers.
 
 - Pi writes diagnostics (`--version`, `--list-models`) to stderr, not stdout.
   Capture with `2>&1`.
-- Slash command processors textually substitute `$0..$9`, `$@`, etc. in the
-  rendered skill body. Keep all `$`-using shell logic in `bin/*.sh` files.
+- Slash command processors textually substitute shell positional variables
+  (the dollar-N forms, plus dollar-at and dollar-star) in the rendered skill
+  body. Keep all dollar-using shell logic in `bin/*.sh` files. (Even quoting
+  them in backticks is not safe — substitution happens before render.)
 - Review/challenge use `pi -p --mode json` and extract assistant text from the
   `agent_end` event with `jq`. Errors surface via the same event's
   `errorMessage` field.
