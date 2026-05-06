@@ -1,7 +1,7 @@
 ---
 name: pi
 description: |
-  Pi CLI wrapper — three modes. Review: independent diff review via Pi SDK with
+  Pi CLI wrapper — three modes. Review: independent diff review via Pi CLI with
   pass/fail gate. Challenge: adversarial mode that tries to break your code via
   multi-turn loop. Consult: ask Pi anything with session continuity.
   Provider-agnostic second opinion (Foundry, Anthropic, OpenAI, HuggingFace,
@@ -17,12 +17,14 @@ allowed-tools:
 
 # Pi skill
 
-Wraps the [Pi coding agent](https://pi.dev) CLI + SDK. Independent voice from the
+Wraps the [Pi coding agent](https://pi.dev) CLI. Independent voice from the
 session you're in — different provider, different context, fresh eyes.
 
-> **Note for the assistant:** all logic lives in `bin/*.sh` and `runner.ts`.
-> The skill body is intentionally free of inline `$1`, `$0`, `$@` etc. so the
-> slash-command processor cannot mangle it via positional-arg substitution.
+> **Note for the assistant:** all logic lives in `bin/*.sh`. The skill body is
+> intentionally free of inline `$1`, `$0`, `$@` etc. so the slash-command
+> processor cannot mangle it via positional-arg substitution. The skill shells
+> out to `pi --print --mode json` and parses NDJSON with `jq` — no SDK, no
+> bundled `node_modules`.
 
 ## How to invoke
 
@@ -57,7 +59,7 @@ bin/consult.sh [--model "<id>"] [--continue] -- "<question>"
 ### `review [--base <branch>] [--model <id>]`
 
 Independent diff review. Detects base branch automatically (upstream →
-origin/HEAD → master → main). Streams findings tagged
+origin/HEAD → master → main). Prints findings tagged
 `[BLOCKER|MAJOR|MINOR|NIT]` and emits a final `PI_REVIEW_GATE: {...}` JSON
 verdict.
 
@@ -109,8 +111,10 @@ to run `pi` once interactively to log in / configure providers.
   — real second opinion, not the same model agreeing with itself.
 - **Foundry-friendly**: surfaces Azure AI Foundry-hosted models (`foundry-*`)
   alongside others. Routes through your Foundry tenant if you pick one.
-- **Adversarial loop**: SDK keeps a single Pi session across challenge rounds
-  via `followUp()` / `steer()` rather than spawning fresh sessions per round.
+- **Adversarial loop**: keeps a single Pi session across challenge rounds via
+  `pi --session <id>` so each round builds on the prior context.
+- **No bundled deps**: pure shell-out to `pi`. Nothing to `bun install`,
+  nothing to keep in lockstep with upstream pi versions.
 
 ## Implementation notes (for maintainers)
 
@@ -118,5 +122,8 @@ to run `pi` once interactively to log in / configure providers.
   Capture with `2>&1`.
 - Slash command processors textually substitute `$0..$9`, `$@`, etc. in the
   rendered skill body. Keep all `$`-using shell logic in `bin/*.sh` files.
-- `runner.ts` uses `@mariozechner/pi-coding-agent` SDK + `@mariozechner/pi-ai`
-  for `getModel(provider, id)` resolution.
+- Review/challenge use `pi -p --mode json` and extract assistant text from the
+  `agent_end` event with `jq`. Errors surface via the same event's
+  `errorMessage` field.
+- Challenge resumes via `pi --session <id>`; the id is captured from the
+  first round's `session` event.

@@ -26,8 +26,8 @@ HuggingFace, etc.) and you get a real outside read.
 ## Requirements
 
 - [Pi CLI](https://pi.dev) — `npm install -g @mariozechner/pi-coding-agent`
-- [Bun](https://bun.sh) — for `review` and `challenge` (SDK-backed). `consult`
-  works without it.
+- `git` and `jq` (for `review` and `challenge` to capture the diff and parse
+  pi's NDJSON output).
 - Pi already authenticated with at least one provider configured. Run `pi`
   once interactively to set up; the skill assumes you're already logged in.
 
@@ -44,7 +44,7 @@ Via the Claude Code marketplace:
 
 1. Detects base branch (upstream → origin/HEAD → master → main).
 2. Captures diff (capped at 200KB).
-3. Hands diff to Pi via SDK with a structured-output prompt.
+3. Hands diff to Pi via `pi --print --mode json` with a structured-output prompt.
 4. Pi emits findings tagged `[BLOCKER|MAJOR|MINOR|NIT] file:line — desc. fix.`
 5. Final line: `PI_REVIEW_GATE: {"verdict":"pass"|"fail",...}`.
 6. The calling Claude Code session parses the gate and surfaces findings.
@@ -52,8 +52,8 @@ Via the Claude Code marketplace:
 ## How challenge works
 
 1. Initial prompt: "find the 3-5 most likely failure modes."
-2. Then `--rounds N` (default 3) rounds via SDK `followUp()` / `steer()`,
-   each round shifting the angle (concurrency → error paths → security → boundaries).
+2. Then `--rounds N` (default 3) rounds resumed via `pi --session <id>`, each
+   round shifting the angle (concurrency → error paths → security → boundaries).
 3. Final summary: deduplicated, severity-sorted breakage list +
    `PI_CHALLENGE_GATE` line.
 
