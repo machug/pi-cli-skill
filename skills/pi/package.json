@@ -1,0 +1,17 @@
+{
+  "name": "pi-cli-skill-runner",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "review": "bun run runner.ts review",
+    "challenge": "bun run runner.ts challenge"
+  },
+  "dependencies": {
+    "@mariozechner/pi-coding-agent": "*"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.5.0"
+  }
+}

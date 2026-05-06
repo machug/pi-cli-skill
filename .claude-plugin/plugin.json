@@ -1,0 +1,13 @@
+{
+  "name": "pi-cli-skill",
+  "version": "0.1.0",
+  "description": "Pi CLI wrapper — code review / adversarial challenge / consult with session continuity. Provider-agnostic second opinion via @mariozechner/pi-coding-agent.",
+  "author": {
+    "name": "Hugh McIntyre"
+  },
+  "homepage": "https://hughtec.com",
+  "repository": "https://github.com/machug/pi-cli-skill",
+  "license": "MIT",
+  "keywords": ["pi", "code-review", "adversarial", "second-opinion", "multi-llm", "foundry", "consult"],
+  "skills": "./skills/"
+}
